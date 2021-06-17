@@ -18,6 +18,8 @@ voltage_recordings = glob.glob(datadirs)
 test = pd.read_csv(voltage_recordings[0], index_col="Time(ms)")
 
 test = test.rename(columns=lambda x: x.strip())
+# # what is .pop?
+# test.pop("Time(ms)")
 
 test = test > 3
 test = test.astype(int)

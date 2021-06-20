@@ -1,0 +1,53 @@
+{"metadata" : {
+   "surgeon": "john_doe",
+   "start_time": "20210619_10:00",
+   "end_time": "20210619_11:00",
+   "animal_species": "mice",
+   "animal_id": "LHE001",
+   "animal_age_days": 85,
+   "animal_weight_grams": 31.5,
+   "animal_sex": "female"
+  },
+ "skull_position": {
+   "bregma": 100,
+   "lambda": 150,
+   "level_left": 120,
+   "level_right": 110,
+   "level_z": 50
+  },
+ "injection_n": {
+   "target": "LHab",
+   "type": "GCaMP",
+   "vehicle": "Adenovirus",
+   "stock": "stock_id",
+   "volume_ul": 200,
+   "ap": 198,
+   "ml": 60,
+   "dv":200,
+   "angle": 90,
+   "success": "unknown"
+  },
+ "implant_headplate": {
+   "data": "types",
+   "num_screws": 0,
+   "skull_hashing": "True",
+   "success": "unknown"
+  },
+ "implant_grin": {
+   "target": "LHab",
+   "type": "standard",
+   "ap": 198,
+   "ml": 60,
+   "dv": 200,
+   "angle": 90,
+   "success": "unknown"
+ },
+ "analgesics": {
+   "type": "buprinex",
+   "target": "systemic",
+   "method": "injection",
+   "route": "IP",
+   "dose_mg-kg": 20.21,
+   "volume_ml": 2
+  }
+}

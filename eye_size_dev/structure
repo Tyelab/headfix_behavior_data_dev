@@ -1,0 +1,53 @@
+example directory structure.
+
+* base - highest level directory. this is where all experiments/scrips for a project would go
+
+  * experiments - 2nd level directory. each experiment (i.e different animals) would go here
+
+    * experiment - 3rd level directory. an example experiment (e.g specific to an animal)
+
+      * setup - 4th level directory. an example configureation for the experiment (i.e specific hyperparameters)
+
+        * data - 5th level directory. where data is stored for this run (i.e raw tifs)
+        * convert - 5th level directory. scripts to convert data to right format
+        * analysis - 5th level directory. scripts for analyzing the data
+        * distribute - 5th level directory. scripts for packaging / releasing results
+
+  * scripts - 2nd level directory. this is where general scripts that apply to all experiments go
+
+    * consolidation - 3rd level directory. data consolidation scripts that apply to all experiments
+
+    * pipeline - 3rd level directory. pipeline scripts - for example if you have 5 steps to apply to all data
+
+
+base
+│ 
+├── experiments
+│   │  
+│   ├── experiment_fly
+│   │   │  
+│   │   ├── setup01
+│   │   │   │  
+│   │   │   ├── 01_data
+│   │   │   │  
+│   │   │   ├── 02_convert
+│   │   │   │  
+│   │   │   ├── 03_analysis
+│   │   │   │  
+│   │   │   └── 04_distribute
+│   │   │  
+│   │   ├── setup02
+│   │   ├──    .
+│   │   ├──    .
+│   │   └── setup{n}
+│   │  
+│   ├── experiment_marmoset
+│   ├──       .
+│   ├──       .
+│   └── experiment_{n}
+│  
+└── scripts
+    │  
+    ├── consolidation
+    │  
+    └── pipeline

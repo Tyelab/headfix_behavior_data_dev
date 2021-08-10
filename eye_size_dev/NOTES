@@ -1,0 +1,25 @@
+tested on ubuntu 18.04 and macos, not sure about windows...
+
+create conda env:
+  - conda create -n test python=3.6
+  - conda activate test
+
+install packages:
+  - pip install zarr daisy scikit-image
+
+install packages for visualiztion:
+  - pip install neuroglancer
+  - pip install pip install git+git://github.com/funkelab/funlib.show.neuroglancer.git
+
+you will need to change around for your data, but you can see the general logic:
+
+1. tiff to zarr conversion
+  - python convert_images.py `path to tifs` `output zarr/n5`
+
+2. example daisy script
+  - python convert_images_parallel.py `path to tifs` `output zarr/n5`
+
+3. view in neuroglancer
+  - neuroglancer -d `dataset name` -f `path to zarr/n5`
+
+to see example directory structure for organization see `structure`

@@ -26,4 +26,4 @@ Test Module
 
 Test module contains...
 
-.. currentmodule:: bruker_data_utils
+.. module:: bruker_data_utils

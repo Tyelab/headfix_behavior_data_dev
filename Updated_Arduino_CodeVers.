@@ -1,0 +1,217 @@
+
+//#include <SerialTransfer.h> // Enables serial comms between Python config and Arduino
+// rename SerialTransfer to myTransfer
+//SerialTransfer myTransfer;
+//#include <digitalWriteFast.h> 
+
+const int pospin=33; // solenoid for liquid control (positive stimulus)
+const int vacpin=24; // solenoid for vacuum control
+const int negpin=31; // solenoid for air control (negative stimulus)
+const int speaker=12; // speaker control
+const int speakertrig=43; //speaker control II
+//// Variables ////
+
+const int TotalTrialNo=10;
+const int BaseITI= 3000; //3 s
+const int MinITIJitter= 500; // ITI Jitter (min)
+const int MaxITIJitter=1000; // ITI Jitter (max)
+const int SpeakerDur= 2000; //Speaker Duration
+const int MaxNoiseJitter=1000; // Speaker Jitter (max)
+const int MinNoiseJitter=10; // Speaker Jitter (min)
+const int PosDelivery= 250; // Liquid Delivery
+const int NegDelivery=250; // Air Delivery
+const int VacuumDur= 100; // Vacuum Duration
+const int PNegTrials= 50; // Percentage of negative trials (1-100)
+
+/// Arrays ///
+int ITIArray[TotalTrialNo];
+int SpeakerDurArray[TotalTrialNo];
+int Trials[TotalTrialNo];
+
+/// Boolean Flags ///
+boolean Sucrose=false;
+boolean Air=false;
+boolean ITI=false;
+boolean Stimulus=false;
+boolean Begin=true;
+boolean TOver=false;
+boolean Vacuum=false;
+// Initial Flags and things that need to be true //
+int trialType;
+int currentTrial=0;
+long ms;
+long ITIEnd;
+long NoiseEnd;
+long USstart;
+long USEnd;
+long VacEnd;
+
+void setup() {
+  // setup code runs once!:
+ pinMode(pospin, OUTPUT);
+ pinMode(vacpin, OUTPUT);
+ pinMode(negpin, OUTPUT);
+ pinMode(speaker, OUTPUT);
+
+
+
+ /// Create Arrays ///
+ 
+ // Timing Arrays//
+ fillDelayArray(ITIArray, TotalTrialNo, BaseITI, MinITIJitter, MaxITIJitter);
+ fillDelayArray(SpeakerDurArray, TotalTrialNo, SpeakerDur, MinNoiseJitter, MaxNoiseJitter);
+ // Trial Types//
+ defineTrialTypes(TotalTrialNo, PNegTrials);
+}
+
+
+  
+void loop() {
+  // Create IF/THEN loops for each of these scenarios:
+  if (currentTrial < TotalTrialNo) {
+    ms = millis();
+    DetermineTrial(ms);
+    startITI(ms); //Start ITI
+    StimulusDelivery(ms); //Conditional + Unconditional Stimulus Presentation
+    VacuumF(ms); //Remove Sucrose (if needed)
+    offSolenoid(ms); //ends trial and begins a new one
+  }
+}    
+
+/// Function Definitions ///
+
+void DetermineTrial(long ms) { // Figures out Trial Type 
+ if (Begin) {
+  Serial.println("Starting trial ");
+  Serial.println(currentTrial);
+  Serial.println(" Trial Type Is:");
+  trialType=Trials[currentTrial];
+  switch (trialType) {
+    case 0:
+    Serial.println("Air");
+    Sucrose=true;
+    case 1:
+    Serial.println("Sucrose");
+    Air=true;
+  }
+  Begin=false;
+  ITI=true;
+ }
+}
+
+void startITI(long ms) { // Determines length of ITI
+  if (ITI){
+    Serial.println("starting ITI");
+    int currentITI=ITIArray[currentTrial];
+    ITIEnd=ms + currentITI;
+  }
+  if (ITI && (ms >= ITIEnd)) {
+    ITI=false;
+    Stimulus=true;
+  }
+}
+
+void StimulusDelivery(long ms) {
+  if (Stimulus){
+    Serial.println("Playing Tone:");
+    int currentNoiseDur = SpeakerDurArray[currentTrial];
+    switch (trialType){
+      case 0:
+      Serial.println("For Air");
+      tone(speaker, 2000, currentNoiseDur);
+      NoiseEnd=ms + currentNoiseDur;
+      USstart=NoiseEnd - PosDelivery;
+      if (Air &&(ms >= USstart)){
+        Serial.println("Delivering Airpuff");
+        USEnd=ms + PosDelivery;
+        digitalWrite(negpin, HIGH);
+        if (Air &&(ms >=USEnd)) {
+          digitalWrite(negpin, LOW);
+          Air=false;
+          TOver=true;
+        }
+      }
+      break;
+      case 1:
+      Serial.println("For Sucrose");
+      tone(speaker, 9000, currentNoiseDur);
+      NoiseEnd=ms + currentNoiseDur;
+      USstart=NoiseEnd - NegDelivery;
+      if (Sucrose &&(ms>=USstart)){
+        Serial.println("Delivering Sucrose");
+        USEnd=ms + PosDelivery;
+        digitalWrite(pospin, HIGH);
+        if (Sucrose &&(ms >=USEnd)) {
+          digitalWrite(pospin, LOW);
+          Sucrose=false;
+          Vacuum=true;
+      }
+      break;
+    }
+  }
+}
+}
+
+void VacuumF(long ms){
+  if(Vacuum){
+    Serial.println("Vacuum on");
+    VacEnd=ms + VacuumDur;
+    digitalWrite(vacpin,HIGH);
+    if (Vacuum && (ms>=VacEnd)){
+      digitalWrite(vacpin, LOW);
+      Vacuum=false;
+      TOver=true;
+    }
+  }
+}
+
+void offSolenoid(long ms){
+  // Rewrite everything to low, in case it was not recorded
+  if (TOver){
+    Serial.println("All solenoids off- starting new trial");
+    digitalWrite(vacpin,LOW);
+    digitalWrite(negpin,LOW);
+    digitalWrite(pospin,LOW);
+    currentTrial++;
+    TOver=false;
+    Begin=true;
+  }
+}
+
+
+/// ESTABLISH ARRAY FUNCTIONS ///
+void fillDelayArray(int delayArray[], int trialNumber, int baseLength, int minJitter, int maxJitter) {
+  randomSeed(analogRead(0)); 
+  for (int i = 0; i < trialNumber; i++) {
+    delayArray[i] = baseLength + random(minJitter, maxJitter); // Randomly adjust delay times to create Jitter
+  }
+}
+
+
+void defineTrialTypes(int trialNumber, float percentNeg) {
+  // initialize array with all positive (1) trials
+  for (int i = 0; i < trialNumber; i++) {
+    Trials[i] = 1;
+  }
+  if (percentNeg > 0) {
+    randomSeed(analogRead(0));
+    int negTrialNum = round(trialNumber * (percentNeg / 100));
+    // randomly choose negTrialNum indexs to make negative (0) trials
+    int indexCount = 0;
+    while (indexCount < negTrialNum) {
+      int negIndex = random(trialNumber);
+      // only make negative if it isn't already
+      if (Trials[negIndex]) {
+        Trials[negIndex] = 0;
+        indexCount++; // This function may have to be modified for a pseudorandom space
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
